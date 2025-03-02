@@ -65,5 +65,29 @@
           };
         }
       );
+
+      packages = forEachSupportedSystem (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        rec {
+          minesweeper-rs = pkgs.rustPlatform.buildRustPackage {
+            pname = "minesweeper-rs";
+            version = "0.0.1";
+            src = ./.;
+            cargoLock.lockFile = ./Cargo.lock;
+          };
+          default = minesweeper-rs;
+        }
+      );
+
+      apps = forEachSupportedSystem (system: rec {
+        minesweeper-rs = {
+          type = "app";
+          program = "${self.packages.${system}.minesweeper-rs}/bin/minesweeper-rs";
+        };
+        default = minesweeper-rs;
+      });
     };
 }
